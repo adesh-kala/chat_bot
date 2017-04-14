@@ -260,22 +260,6 @@ def admin():
 def send_notification_stu_chap():
     return render_template("indexstu.html")
 
-@app.route('/book_entry')       #Function to Make a book entry in library table
-def book_entry():
-    return render_template("indexlib.html")
-
-@app.route('/book_issue')       #Function to issue a book
-def book_issue_from_lib():
-    return render_template("indexissue.html")
-
-@app.route('/prev_papers_entry')       #Function to enter previous year paper details
-def prev_papers_entry():
-    return render_template("q_papers.html")
-
-@app.route('/exam_time_table')       #Function to enter exam time table details
-def exam_time_table():
-    return render_template("e_tt.html")
-
 @app.route('/daily_time_table')       #Function to enter exam time table details
 def daily_tt():
     return render_template("tt.html")
@@ -318,106 +302,6 @@ def send_notification_stu_chap_post():
     log(chp_name+" "+eve_name+" "+eve_dscp+" "+eve_poster_url+" "+date+" "+time+" "+venue+" "+tar_yr)
     return render_template("success.html")
 
-@app.route('/book_entry_post',methods=['POST'])       #Function to Make a book entry in library table
-def book_entry_post():
-    b_id = (request.form['id']).upper()
-    b_name = (request.form['b_name']).upper()
-    a_name = (request.form['a_name']).upper()
-    price = float(request.form['price'])
-    no_of_copy = int(request.form['noc'])
-    google_books_api = requests.get('https://www.googleapis.com/books/v1/volumes?q='+b_name+'+inauthor:'+a_name)
-    google_books_json = json.loads(google_books_api.content)
-    b_name = (google_books_json['items'][0]['volumeInfo']['title']).upper()
-    a_name = (google_books_json['items'][0]['volumeInfo']['authors'][0]).upper()
-    b_name=b_name[0:59]
-    book = lib_books(book_id = b_id, book_name = b_name, author_name = a_name, price = price, no_of_copies = no_of_copy)
-    db.session.add(book)
-    db.session.commit()
-    return render_template("success.html")
-
-@app.route('/book_issue_post',methods=['POST'])       #Function to issue a book
-def book_issue_from_lib_post():
-    stu_roll_no = str(request.form['stu_no']).upper()
-    b_name = str(request.form['b_name']).upper()
-    issue_date=date.today()
-    due_date=date.today()+timedelta(days=14)
-    issued_book=book_issue(book_name=b_name,stu_roll_no=stu_roll_no,issue_date=issue_date,due_date=due_date,reminded=False)
-    db.session.query(lib_books).filter(lib_books.book_name==b_name).update({lib_books.no_of_copies:lib_books.no_of_copies-1})
-    db.session.add(issued_book)
-    db.session.commit()
-    return render_template("success.html")
-
-@app.route('/prev_papers_entry_post',methods=['POST'])       #Function to enter previous year paper details
-def prev_papers_entry_post():
-    dept = (request.form['dept']).upper()
-    year = str(request.form['year'])
-    sem = str(request.form['sem'])
-    subject = (request.form['sub']).upper()
-    exam_type = (request.form['type']).upper()
-    url = request.form['url']
-    paper = prev_papers(dept_name = dept, year = year, semester = sem, subject = subject, exam_type = exam_type, url = url)
-    db.session.add(paper)
-    db.session.commit()
-    return render_template("success.html")
-
-@app.route('/exam_time_table_post',methods=['POST'])       #Function to enter exam time table details
-def exam_time_table_post():
-    dept_name = (request.form['dept']).upper()
-    year = request.form['year']
-    sem = request.form['semester']
-    toe = request.form['toe']
-
-    date1 = (request.form['1']).upper()
-    sub1 = (request.form['2']).upper()
-    time1 = (request.form['3']).upper()
-
-    date2 = (request.form['4']).upper()
-    sub2 = (request.form['5']).upper()
-    time2 = (request.form['6']).upper()
-
-    date3 = (request.form['7']).upper()
-    sub3 = (request.form['8']).upper()
-    time3 = (request.form['9']).upper()
-
-    date4 = (request.form['10']).upper()
-    sub4 = (request.form['11']).upper()
-    time4 = (request.form['12']).upper()
-
-    date5 = (request.form['13']).upper()
-    sub5 = (request.form['14']).upper()
-    time5 = (request.form['15']).upper()
-
-    exam_time_table_msg = toe+" Time Table\n---------------\nDepartment: " + dept_name + "\nYear: " + year + "\nSemester: " + sem + "\n---------------------\n"+date1+"\n"+sub1+"\n"+time1
-    exam_time_table_msg = exam_time_table_msg + "\n---------------------\n"+date2+"\n"+sub2+"\n"+time2
-    exam_time_table_msg = exam_time_table_msg + "\n---------------------\n"+date3+"\n"+sub3+"\n"+time3
-    exam_time_table_msg = exam_time_table_msg + "\n---------------------\n"+date4+"\n"+sub4+"\n"+time4
-    exam_time_table_msg = exam_time_table_msg + "\n---------------------\n"+date5+"\n"+sub5+"\n"+time5
-
-    dept_short_dict = {'COMPUTER ENGINEERING DEPARTMENT':'CO','ELECTRICAL ENGINEERING DEPARTMENT':'EE','ELECTRONICS ENGINEERING DEPARTMENT':'EC','MECHANICAL ENGINEERING DEPARTMENT':'ME','CIVIL ENGINEERING DEPARTMENT':'CE','CHEMICAL ENGINEERING DEPARTMENT':'CH'}
-    dept_name = dept_short_dict[dept_name]
-
-    curr = datetime.utcnow()
-    curr_year = curr.year%2000
-    print(str(curr))
-    print(str(curr_year))
-    users = subscribers.query.all()
-    for each_user in users:
-        print("New user")
-        roll = each_user.roll_no
-        print(roll)
-        year_of_adm = roll[1:3]
-        dept_of_adm = roll[3:5]
-        print(year_of_adm + " " + dept_of_adm)
-
-        if curr.month >= 7:
-            year_of_adm = int(year_of_adm)+1
-            print("year_of_adm changed")
-        print(str(int(year) == int(curr_year) - int(year_of_adm)))
-        if(int(year) == int(curr_year) - int(year_of_adm)) and dept_name == str(dept_of_adm):
-            print("Sucess")
-            send_message(each_user.user_fb_id,exam_time_table_msg)
-
-    return render_template("success.html")
 
 @app.route('/daily_time_table_post',methods=['POST'])       #Function to enter detail time table details
 def daily_time_table_post():
@@ -466,18 +350,6 @@ def check_reminder():
             db.session.commit()
     return "Success"
 
-@app.route('/check_duedate',methods=['GET'])
-def check_duedate():
-    check_due_date = date.today()+timedelta(days=1)
-    list_of_book_issue=book_issue.query.filter(book_issue.due_date == check_due_date).filter(book_issue.reminded == False).all()
-    for each_issue in list_of_book_issue:
-        users = subscribers.query.filter(subscribers.roll_no == each_issue.stu_roll_no).all()
-        for each_user in users:
-            due_message = "Book Due Date Reminder\n--------------\nYou have issued "+each_issue.book_name+" book whose due date is "+str(each_issue.due_date)[0:11]
-            send_message(each_user.user_fb_id,due_message)
-        db.session.query(book_issue).filter(book_issue.book_name==each_issue.book_name).filter(book_issue.stu_roll_no == each_issue.stu_roll_no).update({book_issue.reminded:True})
-        db.session.commit()
-    return "Success"
 
 @app.route('/send_dailytt',methods=['GET'])
 def send_dailytt():
@@ -529,38 +401,12 @@ def process_text_message(msg,s_id):
 @app.route('/showdb',methods=['GET'])       #Function to see all entry in posts
 def showdb():
     x=""
-    a=posts.query.all()
-    for p in a:
-        x=x+p.name+" "+p.post+" "+p.contact+" "+p.email+"<br>"
-    x = x + "<br><br><br>"
-    a=warden.query.all()
-    for p in a:
-        x=x+p.name+" "+p.hostelname+" "+p.contact+" "+p.email+"<br>"
-    x = x + "<br><br><br>"
-    a=hod.query.all()
-    for p in a:
-        x=x+p.name+" "+p.deptname+" "+p.contact+" "+p.email+"<br>"
-    x = x + "<br><br><br>"
+    
     a=subscribers.query.all()
     for p in a:
         x=x+p.roll_no+" "+p.user_fb_id+"<br>"
     x = x + "<br><br><br>"
-    a=lib_books.query.all()
-    b=book_issue.query.all()
-    for p in a:
-        x=x+p.book_id+" "+p.book_name+" "+p.author_name+" "+str(p.price)+" "+str(p.no_of_copies)+"<br>"
-    x = x + "<br><br><br>"
-    for p in b:
-        x=x+p.book_name+" "+p.stu_roll_no+" "+str(p.issue_date)+" "+str(p.due_date)+" "+str(p.reminded)+"<br>"
-    x = x + "<br><br><br>"
-    a=prev_papers.query.all()
-    for p in a:
-        x=x+p.dept_name+" "+p.year+" "+p.semester+" "+p.subject+" "+p.exam_type+" "+p.url+"<br>"
-    x = x + "<br><br><br>"
-    a=reminders.query.all()
-    for p in a:
-        x=x+p.senderID+" "+p.reminder_text+" "+p.reminder_time+" "+str(p.reminded)+"<br>"
-    x = x + "<br><br><br>"
+    
     a=daily_time_table.query.all()
     for p in a:
         x=x+p.department+" "+p.year+" "+p.semester+" "+str(p.day_of_week)+p.subjects+"<br>"
