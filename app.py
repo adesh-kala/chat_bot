@@ -38,6 +38,11 @@ def verify():
 
 
 @app.route('/', methods=['POST'])
+
+def authenticate_user(roll_number,code):
+    return true
+
+
 def webhook():
 
     # endpoint for processing incoming messaging events
@@ -64,11 +69,14 @@ def webhook():
                         pattern = re.compile(regex)
                         string = message_text.upper()
                         if pattern.match(string):
-                            roll_number=string[9:17]
+                            roll_number=string[9:18]
                             code=string[19:]
-                            op="Roll is "+roll_number+" code is "+code
-                            #add_subscriber(string,sender_id)
-                            send_message(sender_id, op)
+                            
+                            if authenticate_user(roll_number,code)==true:
+                                add_subscriber(roll_number,sender_id)
+                            else:
+                                send_message(sender_id, "Invalid Code and room number combination")
+                            
                         else:
                             users = subscribers.query.filter(subscribers.user_fb_id == sender_id).all()
                             if not users:
