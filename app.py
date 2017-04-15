@@ -64,8 +64,8 @@ def webhook():
                         pattern = re.compile(regex)
                         string = message_text.upper()
                         if pattern.match(string):
-                            roll_number=string[0,8]
-                            code=string[10,-1]
+                            roll_number=string[0:8]
+                            code=string[10:-1]
                             op="Roll is "+roll_number+" code is "+code
                             #add_subscriber(string,sender_id)
                             send_message(sender_id, op)
