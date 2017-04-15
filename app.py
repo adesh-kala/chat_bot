@@ -69,7 +69,7 @@ def webhook():
                             roll_number=string[9:18]
                             code=string[19:]
                             
-                            if authenticate_user(roll_number,code)==true:
+                            if authenticate_user(roll_number,code)==True:
                                 add_subscriber(roll_number,sender_id)
                                 send_message(sender_id,"successfully")
                             else:
@@ -507,7 +507,7 @@ def send_message(recipient_id, message_text):
 
 
 def authenticate_user(roll_number,code):
-    return true
+    return True
 
 
 def add_subscriber(request_string, user_id):
