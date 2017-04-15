@@ -39,9 +39,6 @@ def verify():
 
 @app.route('/', methods=['POST'])
 
-def authenticate_user(roll_number,code):
-    return true
-
 
 def webhook():
 
@@ -74,6 +71,7 @@ def webhook():
                             
                             if authenticate_user(roll_number,code)==true:
                                 add_subscriber(roll_number,sender_id)
+                                send_message(sender_id,"successfully")
                             else:
                                 send_message(sender_id, "Invalid Code and room number combination")
                             
@@ -506,6 +504,11 @@ def send_message(recipient_id, message_text):
     if r.status_code != 200:
         log(r.status_code)
         log(r.text)
+
+
+def authenticate_user(roll_number,code):
+    return true
+
 
 def add_subscriber(request_string, user_id):
     a,user_roll_no = request_string.split(' ')
